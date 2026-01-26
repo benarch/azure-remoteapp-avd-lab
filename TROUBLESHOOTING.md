@@ -56,7 +56,9 @@ Option A: Manually fix on VM (quick fix)
 # Run:
 Set-ExecutionPolicy Bypass -Scope Process -Force
 [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
-iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+# Download and execute installer (safer than Invoke-Expression)
+Invoke-RestMethod 'https://community.chocolatey.org/install.ps1' -OutFile "$env:TEMP\install-choco.ps1"
+& "$env:TEMP\install-choco.ps1"
 
 # Install apps
 choco install microsoft-edge notepadplusplus 7zip git github-desktop vscode vscode-insiders -y

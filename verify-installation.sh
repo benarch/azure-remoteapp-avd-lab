@@ -4,7 +4,8 @@
 # This script checks the status of application deployment on session host VMs
 ################################################################################
 
-set -e
+# Exit on error, undefined variables, and pipe failures for robust error handling
+set -euo pipefail
 
 # Colors for output
 GREEN='\033[0;32m'
@@ -159,6 +160,8 @@ for VM_NAME in $VM_NAMES; do
         fi
     else
         echo -e "${YELLOW}⚠ Could not retrieve instance view${NC}"
+        echo -e "${YELLOW}  This may be normal if the run command just started or Azure API is slow.${NC}"
+        echo -e "${YELLOW}  Try checking again in a few minutes or view in Azure Portal.${NC}"
     fi
     
     # Check AVD agent installation

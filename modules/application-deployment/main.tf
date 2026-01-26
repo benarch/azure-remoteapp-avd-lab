@@ -39,10 +39,13 @@ resource "azurerm_virtual_machine_run_command" "app_deployment" {
       Write-Log "Log file: $LogFile" -Color Cyan
       
       # Ensure script runs in 64-bit PowerShell
-      # Note: In run command context, we can't use $MyInvocation, so we check and inform
+      # Note: Run commands execute in System32 context which should be 64-bit by default
+      # If somehow in 32-bit, we can't switch contexts in a run command, so we fail fast
       if ([System.Environment]::Is64BitProcess -eq $false) {
-          Write-Log "Warning: Running in 32-bit PowerShell. Some apps may require 64-bit." -Color Yellow
-          Write-Log "Continuing with 32-bit PowerShell..." -Color Yellow
+          Write-Log "ERROR: Running in 32-bit PowerShell - this may cause installation failures" -Color Red
+          Write-Log "Run commands should execute in 64-bit context by default" -Color Red
+          Write-Log "This indicates a system configuration issue" -Color Red
+          # Continue anyway but warn - applications may fail to install properly
       } else {
           Write-Log "Running in 64-bit PowerShell" -Color Green
       }
