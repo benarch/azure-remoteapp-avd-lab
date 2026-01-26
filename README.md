@@ -2,11 +2,34 @@
 
 Complete Terraform infrastructure-as-code for deploying an Azure Virtual Desktop environment with RemoteApp configuration, supporting multi-user deployment and multi-workspace strategy (dev/prod).
 
+## 📚 Documentation
+
+- **[README.md](README.md)** - Complete deployment guide (this file)
+- **[VERIFICATION_GUIDE.md](VERIFICATION_GUIDE.md)** - How to verify installation succeeded ⭐
+- **[TROUBLESHOOTING.md](TROUBLESHOOTING.md)** - Solutions for common issues ⭐
+- **[QUICK_REFERENCE.md](QUICK_REFERENCE.md)** - Quick command reference
+- **[DEPLOYMENT_CHECKLIST.md](DEPLOYMENT_CHECKLIST.md)** - Step-by-step checklist
+
+## 🚀 Quick Verification
+
+After deployment, verify everything is working:
+
+```bash
+./verify-installation.sh
+```
+
+See [VERIFICATION_GUIDE.md](VERIFICATION_GUIDE.md) for detailed usage.
+
 ## Project Structure
 
 ```
 avd-ben-lab1/
 ├── bootstrap-storage.sh              # Bootstrap script to create Azure Storage Account for Terraform state
+├── verify-installation.sh            # Script to verify application deployment succeeded ⭐
+├── VERIFICATION_GUIDE.md             # Detailed guide for verifying installation ⭐
+├── TROUBLESHOOTING.md                # Comprehensive troubleshooting guide ⭐
+├── QUICK_REFERENCE.md                # Quick command reference
+├── DEPLOYMENT_CHECKLIST.md           # Step-by-step deployment checklist
 ├── backend.tf                        # Terraform backend configuration (Azure Storage)
 ├── providers.tf                      # Provider configuration (Azure/Azure AD)
 ├── main.tf                           # Main orchestration file
