@@ -1,0 +1,32 @@
+################################################################################
+# Terraform Variables - Dev Workspace Overrides
+# Development-specific configuration overrides
+################################################################################
+
+environment = "dev"
+
+# Resource Group Name
+resource_group_name = "rg-avd-ben-lab1-dev"
+
+# Host Pool Naming
+host_pool_name = "hpl-avd-ben-lab1-dev"
+
+# Application Groups
+desktop_app_group_name  = "dag-avd-ben-lab1-desktop-dev"
+remoteapp_app_group_name = "dag-avd-ben-lab1-remoteapp-dev"
+
+# Workspace Naming
+workspace_name = "ws-avd-ben-lab1-dev"
+
+# Session Host Configuration
+session_host_count = 1                    # Single host for dev
+vm_name_prefix     = "sh-dev-"
+
+# Tags - Environment specific
+common_tags = {
+  "SecurityControl" = "Ignore"
+  "Project"         = "cp-avd"
+  "ManagedBy"       = "Terraform"
+  "environment"     = "dev"
+  "CostCenter"      = "Development"
+}

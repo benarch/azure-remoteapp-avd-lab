@@ -1,0 +1,32 @@
+################################################################################
+# Terraform Variables - Prod Workspace Overrides
+# Production-specific configuration overrides
+################################################################################
+
+environment = "prod"
+
+# Resource Group Name
+resource_group_name = "rg-avd-ben-lab1-prod"
+
+# Host Pool Naming
+host_pool_name = "hpl-avd-ben-lab1-prod"
+
+# Application Groups
+desktop_app_group_name  = "dag-avd-ben-lab1-desktop-prod"
+remoteapp_app_group_name = "dag-avd-ben-lab1-remoteapp-prod"
+
+# Workspace Naming
+workspace_name = "ws-avd-ben-lab1-prod"
+
+# Session Host Configuration - Can scale in production
+session_host_count = 1                    # Configurable for scaling
+vm_name_prefix     = "sh-prod-"
+
+# Tags - Environment specific
+common_tags = {
+  "SecurityControl" = "Ignore"
+  "Project"         = "cp-avd"
+  "ManagedBy"       = "Terraform"
+  "environment"     = "prod"
+  "CostCenter"      = "Production"
+}
