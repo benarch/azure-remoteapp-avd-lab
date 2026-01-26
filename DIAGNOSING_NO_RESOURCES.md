@@ -125,7 +125,9 @@ If the run command shows installation failed:
 # Install Chocolatey
 Set-ExecutionPolicy Bypass -Scope Process -Force
 [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
-iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+# Download and execute installer (safer than Invoke-Expression)
+Invoke-RestMethod 'https://community.chocolatey.org/install.ps1' -OutFile "$env:TEMP\install-choco.ps1"
+& "$env:TEMP\install-choco.ps1"
 
 # Install applications
 choco install microsoft-edge notepadplusplus 7zip git github-desktop vscode vscode-insiders -y

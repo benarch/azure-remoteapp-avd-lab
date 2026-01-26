@@ -55,8 +55,7 @@ resource "azurerm_virtual_machine_run_command" "app_deployment" {
               [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
               Set-ExecutionPolicy Bypass -Scope Process -Force
               
-              # Use official Chocolatey installation method
-              $ChocoInstallScript = [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
+              # Use official Chocolatey installation method (download first for security)
               Invoke-RestMethod -Uri 'https://community.chocolatey.org/install.ps1' -Method Get -OutFile "$env:TEMP\install-choco.ps1"
               & "$env:TEMP\install-choco.ps1"
               Remove-Item "$env:TEMP\install-choco.ps1" -ErrorAction SilentlyContinue
