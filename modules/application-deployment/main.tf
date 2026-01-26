@@ -13,60 +13,137 @@ resource "azurerm_virtual_machine_run_command" "app_deployment" {
 
   source {
     script = <<-EOF
+      Write-Host "========================================" -ForegroundColor Cyan
       Write-Host "Starting AVD Application Deployment..." -ForegroundColor Green
+      Write-Host "Timestamp: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')" -ForegroundColor Cyan
+      Write-Host "========================================" -ForegroundColor Cyan
       
-      # Error handling
-      $ErrorActionPreference = "Stop"
+      # Error handling - Continue on error to install as many apps as possible
+      $ErrorActionPreference = "Continue"
+      $SuccessCount = 0
+      $FailCount = 0
+      
+      # Create log directory
+      $LogDir = "C:\AVD-Deployment-Logs"
+      $LogFile = "$LogDir\app-deployment-$(Get-Date -Format 'yyyyMMdd-HHmmss').log"
+      New-Item -ItemType Directory -Force -Path $LogDir | Out-Null
+      
+      function Write-Log {
+          param($Message, $Color = "White")
+          $Timestamp = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
+          $LogMessage = "[$Timestamp] $Message"
+          Write-Host $Message -ForegroundColor $Color
+          Add-Content -Path $LogFile -Value $LogMessage
+      }
+      
+      Write-Log "Log file: $LogFile" -Color Cyan
       
       # Ensure script runs in 64-bit PowerShell
       if ([System.Environment]::Is64BitProcess -eq $false) {
-          Write-Host "Running 64-bit PowerShell..." -ForegroundColor Yellow
-          & "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe" -ArgumentList $MyInvocation.MyCommand.Definition
-          exit
+          Write-Log "Switching to 64-bit PowerShell..." -Color Yellow
+          & "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe" -File $MyInvocation.MyCommand.Definition
+          exit $LASTEXITCODE
       }
       
       # Install Chocolatey (package manager for easy installation)
-      Write-Host "Installing Chocolatey..." -ForegroundColor Cyan
+      Write-Log "Installing Chocolatey package manager..." -Color Cyan
       try {
           if (-not (Test-Path "C:\ProgramData\chocolatey\bin\choco.exe")) {
+              Write-Log "Downloading and installing Chocolatey..." -Color Yellow
               [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
-              Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process -Force
-              Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
-              Write-Host "Chocolatey installed successfully" -ForegroundColor Green
+              Set-ExecutionPolicy Bypass -Scope Process -Force
+              $ChocoInstallScript = Invoke-WebRequest -Uri 'https://community.chocolatey.org/install.ps1' -UseBasicParsing
+              Invoke-Expression $ChocoInstallScript.Content
+              
+              if (Test-Path "C:\ProgramData\chocolatey\bin\choco.exe") {
+                  Write-Log "Chocolatey installed successfully" -Color Green
+                  $SuccessCount++
+              } else {
+                  Write-Log "Chocolatey installation verification failed" -Color Red
+                  $FailCount++
+              }
           } else {
-              Write-Host "Chocolatey already installed" -ForegroundColor Green
+              Write-Log "Chocolatey already installed" -Color Green
           }
       } catch {
-          Write-Host "Chocolatey installation failed: $_" -ForegroundColor Yellow
+          Write-Log "Chocolatey installation failed: $($_.Exception.Message)" -Color Red
+          Write-Log "Attempting to continue with pre-installed tools..." -Color Yellow
+          $FailCount++
       }
       
-      # Add Chocolatey to PATH
-      $env:Path += ";C:\ProgramData\chocolatey\bin"
+      # Refresh environment and add Chocolatey to PATH
+      $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
+      $env:ChocolateyInstall = "C:\ProgramData\chocolatey"
       
-      # Define applications with Chocolatey package names
-      $applicationsToInstall = @(
-          @{ name = "Microsoft Edge"; package = "microsoft-edge"; args = "" },
-          @{ name = "Notepad++"; package = "notepadplusplus"; args = "" },
-          @{ name = "7Zip"; package = "7zip"; args = "" },
-          @{ name = "Git"; package = "git"; args = "" },
-          @{ name = "Github Desktop"; package = "github-desktop"; args = "" },
-          @{ name = "Visual Studio Code"; package = "vscode"; args = "" },
-          @{ name = "Visual Studio Code Insiders"; package = "vscode-insiders"; args = "" }
-      )
+      # Verify choco is available
+      $ChocoAvailable = $false
+      try {
+          $ChocoVersion = & choco --version 2>&1
+          Write-Log "Chocolatey version: $ChocoVersion" -Color Cyan
+          $ChocoAvailable = $true
+      } catch {
+          Write-Log "Chocolatey not available in PATH" -Color Red
+      }
       
-      # Install applications via Chocolatey
-      Write-Host "Installing applications..." -ForegroundColor Cyan
-      foreach ($app in $applicationsToInstall) {
-          try {
-              Write-Host "Installing $($app.name)..." -ForegroundColor Yellow
-              & choco install $($app.package) -y --limit-output --no-progress 2>&1 | Out-Null
-              Write-Host "$($app.name) installed" -ForegroundColor Green
-          } catch {
-              Write-Host "Failed to install $($app.name): $_" -ForegroundColor Yellow
+      if ($ChocoAvailable) {
+          # Define applications with Chocolatey package names
+          $applicationsToInstall = @(
+              @{ name = "Microsoft Edge"; package = "microsoft-edge" },
+              @{ name = "Notepad++"; package = "notepadplusplus" },
+              @{ name = "7-Zip"; package = "7zip" },
+              @{ name = "Git"; package = "git" },
+              @{ name = "GitHub Desktop"; package = "github-desktop" },
+              @{ name = "Visual Studio Code"; package = "vscode" },
+              @{ name = "VS Code Insiders"; package = "vscode-insiders" }
+          )
+          
+          Write-Log "========================================" -Color Cyan
+          Write-Log "Installing $($applicationsToInstall.Count) applications..." -Color Cyan
+          Write-Log "========================================" -Color Cyan
+          
+          # Install applications via Chocolatey
+          foreach ($app in $applicationsToInstall) {
+              try {
+                  Write-Log "Installing $($app.name)..." -Color Yellow
+                  $InstallOutput = & choco install $($app.package) -y --no-progress --limit-output 2>&1
+                  
+                  if ($LASTEXITCODE -eq 0) {
+                      Write-Log "✓ $($app.name) installed successfully" -Color Green
+                      $SuccessCount++
+                  } else {
+                      Write-Log "✗ $($app.name) installation returned exit code $LASTEXITCODE" -Color Red
+                      Write-Log "  Output: $InstallOutput" -Color Yellow
+                      $FailCount++
+                  }
+              } catch {
+                  Write-Log "✗ Failed to install $($app.name): $($_.Exception.Message)" -Color Red
+                  $FailCount++
+              }
+              Start-Sleep -Seconds 2
           }
+      } else {
+          Write-Log "Skipping application installation - Chocolatey not available" -Color Red
       }
       
-      Write-Host "Application deployment completed successfully!" -ForegroundColor Green
+      # Summary
+      Write-Log "========================================" -Color Cyan
+      Write-Log "Deployment Summary" -Color Cyan
+      Write-Log "========================================" -Color Cyan
+      Write-Log "Successful installations: $SuccessCount" -Color Green
+      Write-Log "Failed installations: $FailCount" -Color $(if ($FailCount -gt 0) { "Red" } else { "Green" })
+      Write-Log "Log file saved to: $LogFile" -Color Cyan
+      Write-Log "========================================" -Color Cyan
+      
+      if ($FailCount -eq 0) {
+          Write-Log "✓ Application deployment completed successfully!" -Color Green
+          exit 0
+      } elseif ($SuccessCount -gt 0) {
+          Write-Log "⚠ Application deployment completed with some failures" -Color Yellow
+          exit 0
+      } else {
+          Write-Log "✗ Application deployment failed" -Color Red
+          exit 1
+      }
     EOF
   }
 

@@ -197,6 +197,44 @@ terraform output
 terraform output host_pool_name
 terraform output session_host_vm_names
 terraform output assigned_user_email
+
+# View verification instructions
+terraform output application_deployment_verification
+```
+
+### Step 9: Verify Application Installation
+
+Use the provided verification script to check if applications were installed successfully on the VMs:
+
+```bash
+# Run the verification script
+./verify-installation.sh
+```
+
+The script will:
+- Check all session host VMs are running
+- Verify run command execution status
+- Display installation logs and outputs
+- Show success/failure summary for each VM
+- Provide troubleshooting guidance if issues are found
+
+**Manual Verification (if needed):**
+
+```bash
+# Check run command status for a specific VM
+az vm run-command show \
+  --resource-group <resource-group-name> \
+  --vm-name <vm-name> \
+  --name avd-app-deployment \
+  --instance-view
+
+# View detailed output
+az vm run-command show \
+  --resource-group <resource-group-name> \
+  --vm-name <vm-name> \
+  --name avd-app-deployment \
+  --instance-view \
+  --query "instanceView.output" -o tsv
 ```
 
 ### Production Deployment
@@ -291,6 +329,36 @@ Container: tfstate/
 
 ## Monitoring & Troubleshooting
 
+### Verify Application Installation
+
+**Automated Verification (Recommended):**
+
+```bash
+# Run the verification script
+./verify-installation.sh
+```
+
+This script provides comprehensive checks including:
+- VM running status
+- Run command execution state
+- Installation logs and outputs
+- AVD agent registration status
+- Detailed error messages if any issues found
+
+**Manual Checks:**
+
+```bash
+# Check application deployment run command status
+az vm run-command show \
+  --resource-group <resource-group-name> \
+  --vm-name <vm-name> \
+  --name avd-app-deployment \
+  --instance-view
+
+# View installation logs on the VM (via RDP/Bastion)
+# Check: C:\AVD-Deployment-Logs\app-deployment-*.log
+```
+
 ### Check Session Host Status
 
 ```bash
@@ -332,6 +400,53 @@ Azure Portal > Azure Virtual Desktop > Host pools > [host-pool-name]
 - Session hosts tab: Check registration status
 - Users: Verify user assignments
 - Diagnostics: Review session activity
+
+### Troubleshooting "No Available Resources" Error
+
+If you see "There are no available resources" when trying to launch remote apps:
+
+1. **Check Session Host Registration:**
+   ```bash
+   # Verify session hosts are registered with the host pool
+   az desktopvirtualization sessionhost list \
+     --resource-group <resource-group-name> \
+     --host-pool-name <host-pool-name> \
+     --query "[].{Name:name, Status:status}" -o table
+   ```
+
+2. **Verify Session Host is Available:**
+   - Session host must be in "Available" status
+   - Check if VM is running: `az vm get-instance-view`
+   - Verify AVD agent is installed and running
+
+3. **Check Application Installation:**
+   ```bash
+   # Run verification script
+   ./verify-installation.sh
+   ```
+   
+   If apps failed to install, you may need to:
+   - RDP to the VM
+   - Manually install applications
+   - Or redeploy the run command
+
+4. **Verify User Permissions:**
+   ```bash
+   # Check if user has Desktop Virtualization User role
+   az role assignment list \
+     --assignee <user-email> \
+     --query "[?roleDefinitionName=='Desktop Virtualization User']"
+   ```
+
+5. **Check Host Pool Capacity:**
+   - Ensure `max_session_limit` is not exceeded
+   - Verify no sessions are stuck in "Disconnected" state
+   - Check if VMs have enough resources (CPU, RAM)
+
+6. **Review AVD Agent Logs on VM:**
+   - RDP to session host
+   - Check: `C:\Windows\Temp\ScriptLog.log`
+   - Check: Event Viewer > Applications and Services Logs > Microsoft > Windows > TerminalServices-*
 
 ## Cleanup & Destruction
 

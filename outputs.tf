@@ -127,6 +127,21 @@ output "application_deployment_status" {
   value       = module.application_deployment.deployment_status
 }
 
+output "application_deployment_verification" {
+  description = "Instructions to verify application deployment"
+  value       = module.application_deployment.verification_instructions
+}
+
+output "run_command_ids" {
+  description = "Run command extension IDs for verification"
+  value       = module.application_deployment.extension_ids
+}
+
+output "run_command_names" {
+  description = "Run command names for verification"
+  value       = module.application_deployment.run_command_names
+}
+
 # Deployment Summary
 output "deployment_summary" {
   description = "Summary of deployed AVD environment"
