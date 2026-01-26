@@ -36,10 +36,10 @@ output "verification_instructions" {
        Azure Portal > Virtual Machines > [VM Name] > Run Command > Recent commands
     
     2. Use Azure CLI to check run command execution:
-       az vm run-command show --resource-group ${var.resource_group_name} --name [VM_NAME] --run-command-name avd-app-deployment
+       az vm run-command show --resource-group ${var.resource_group_name} --vm-name [VM_NAME] --name avd-app-deployment
     
     3. View run command output logs:
-       az vm run-command show --resource-group ${var.resource_group_name} --name [VM_NAME] --run-command-name avd-app-deployment --instance-view
+       az vm run-command show --resource-group ${var.resource_group_name} --vm-name [VM_NAME] --name avd-app-deployment --instance-view
     
     4. RDP to VM and verify applications installed:
        - Check: C:\ProgramData\chocolatey\bin\choco.exe exists

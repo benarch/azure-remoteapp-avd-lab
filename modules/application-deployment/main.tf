@@ -39,10 +39,12 @@ resource "azurerm_virtual_machine_run_command" "app_deployment" {
       Write-Log "Log file: $LogFile" -Color Cyan
       
       # Ensure script runs in 64-bit PowerShell
+      # Note: In run command context, we can't use $MyInvocation, so we check and inform
       if ([System.Environment]::Is64BitProcess -eq $false) {
-          Write-Log "Switching to 64-bit PowerShell..." -Color Yellow
-          & "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe" -File $MyInvocation.MyCommand.Definition
-          exit $LASTEXITCODE
+          Write-Log "Warning: Running in 32-bit PowerShell. Some apps may require 64-bit." -Color Yellow
+          Write-Log "Continuing with 32-bit PowerShell..." -Color Yellow
+      } else {
+          Write-Log "Running in 64-bit PowerShell" -Color Green
       }
       
       # Install Chocolatey (package manager for easy installation)
@@ -52,8 +54,12 @@ resource "azurerm_virtual_machine_run_command" "app_deployment" {
               Write-Log "Downloading and installing Chocolatey..." -Color Yellow
               [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
               Set-ExecutionPolicy Bypass -Scope Process -Force
-              $ChocoInstallScript = Invoke-WebRequest -Uri 'https://community.chocolatey.org/install.ps1' -UseBasicParsing
-              Invoke-Expression $ChocoInstallScript.Content
+              
+              # Use official Chocolatey installation method
+              $ChocoInstallScript = [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
+              Invoke-RestMethod -Uri 'https://community.chocolatey.org/install.ps1' -Method Get -OutFile "$env:TEMP\install-choco.ps1"
+              & "$env:TEMP\install-choco.ps1"
+              Remove-Item "$env:TEMP\install-choco.ps1" -ErrorAction SilentlyContinue
               
               if (Test-Path "C:\ProgramData\chocolatey\bin\choco.exe") {
                   Write-Log "Chocolatey installed successfully" -Color Green

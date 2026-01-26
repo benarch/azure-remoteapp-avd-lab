@@ -36,8 +36,9 @@ echo ""
 # Get Terraform outputs
 echo -e "${YELLOW}Getting deployment information from Terraform...${NC}"
 
-if [ ! -f ".terraform/terraform.tfstate" ] && [ ! -f "terraform.tfstate" ]; then
-    echo -e "${RED}✗ Terraform state not found. Please deploy infrastructure first.${NC}"
+# Check if terraform state exists (either local or remote backend)
+if ! terraform output resource_group_name &>/dev/null; then
+    echo -e "${RED}✗ Terraform state not found or no outputs available. Please deploy infrastructure first.${NC}"
     exit 1
 fi
 
