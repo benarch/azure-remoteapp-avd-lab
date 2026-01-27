@@ -81,6 +81,11 @@ variable "host_pool_id" {
   type        = string
 }
 
+variable "host_pool_name" {
+  description = "Name of the AVD Host Pool (for DSC registration)"
+  type        = string
+}
+
 variable "registration_info_token" {
   description = "Registration token for host pool"
   type        = string
@@ -90,4 +95,9 @@ variable "registration_info_token" {
 variable "common_tags" {
   description = "Common tags to apply to resources"
   type        = map(string)
+}
+
+variable "avd_user_principal_id" {
+  description = "Principal ID of the AVD user for VM login permissions"
+  type        = string
 }

@@ -49,6 +49,11 @@ resource "azurerm_windows_virtual_machine" "session_host" {
     azurerm_network_interface.session_host[count.index].id,
   ]
 
+  # Enable System Managed Identity for Entra ID Join
+  identity {
+    type = "SystemAssigned"
+  }
+
   os_disk {
     caching              = "ReadWrite"
     storage_account_type = "Premium_LRS"
@@ -82,27 +87,70 @@ resource "azurerm_windows_virtual_machine" "session_host" {
   depends_on = [azurerm_network_interface.session_host]
 }
 
-# Register Session Host with AVD Host Pool using Custom Script Extension
-# This approach uses PowerShell to download and install the AVD agents directly
+# Register Session Host with AVD Host Pool using DSC Extension
+# This is the official Microsoft-recommended approach for reliable AVD registration
 resource "azurerm_virtual_machine_extension" "host_pool_registration" {
   count                      = var.session_host_count
-  name                       = "avd-hostpool-register"
+  name                       = "Microsoft.PowerShell.DSC"
   virtual_machine_id         = azurerm_windows_virtual_machine.session_host[count.index].id
-  publisher                  = "Microsoft.Compute"
-  type                       = "CustomScriptExtension"
-  type_handler_version       = "1.10"
+  publisher                  = "Microsoft.Powershell"
+  type                       = "DSC"
+  type_handler_version       = "2.73"
   auto_upgrade_minor_version = true
 
   settings = jsonencode({
-    "commandToExecute" = "powershell.exe -ExecutionPolicy Bypass -Command \"$ErrorActionPreference='Stop'; $AgentUrl='https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RWrmXv'; $BootLoaderUrl='https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RWrxrH'; $TempDir='C:\\Temp\\AVD'; New-Item -ItemType Directory -Force -Path $TempDir | Out-Null; Invoke-WebRequest -Uri $AgentUrl -OutFile $TempDir\\AVDAgent.msi; Invoke-WebRequest -Uri $BootLoaderUrl -OutFile $TempDir\\AVDBootLoader.msi; Start-Process msiexec.exe -ArgumentList '/i',$TempDir+'\\AVDAgent.msi','/quiet','REGISTRATIONTOKEN=${var.registration_info_token}' -Wait -NoNewWindow; Start-Process msiexec.exe -ArgumentList '/i',$TempDir+'\\AVDBootLoader.msi','/quiet' -Wait -NoNewWindow; Write-Host 'AVD Agent installation completed'\""
+    modulesUrl            = "https://wvdportalstorageblob.blob.core.windows.net/galleryartifacts/Configuration_1.0.02714.342.zip"
+    configurationFunction = "Configuration.ps1\\AddSessionHost"
+    properties = {
+      hostPoolName          = var.host_pool_name
+      aadJoin               = true
+      UseAgentDownloadEndpoint = true
+    }
+  })
+
+  protected_settings = jsonencode({
+    properties = {
+      registrationInfoToken = var.registration_info_token
+    }
+  })
+
+  timeouts {
+    create = "60m"
+    delete = "30m"
+  }
+
+  lifecycle {
+    ignore_changes = [settings, protected_settings]
+  }
+
+  depends_on = [azurerm_virtual_machine_extension.aad_login]
+}
+
+# Azure AD Join Extension - Required for Entra ID joined session hosts
+resource "azurerm_virtual_machine_extension" "aad_login" {
+  count                      = var.session_host_count
+  name                       = "AADLoginForWindows"
+  virtual_machine_id         = azurerm_windows_virtual_machine.session_host[count.index].id
+  publisher                  = "Microsoft.Azure.ActiveDirectory"
+  type                       = "AADLoginForWindows"
+  type_handler_version       = "2.0"
+  auto_upgrade_minor_version = true
+
+  settings = jsonencode({
+    mdmId = ""
   })
 
   timeouts {
     create = "30m"
     delete = "30m"
   }
+}
 
-  lifecycle {
-    ignore_changes = [settings]
-  }
+# RBAC: Virtual Machine User Login - Required for Entra ID joined VMs
+# Users need this role to log into the VM via AVD
+resource "azurerm_role_assignment" "vm_user_login" {
+  count                = var.session_host_count
+  scope                = azurerm_windows_virtual_machine.session_host[count.index].id
+  role_definition_name = "Virtual Machine User Login"
+  principal_id         = var.avd_user_principal_id
 }

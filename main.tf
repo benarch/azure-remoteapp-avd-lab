@@ -130,13 +130,16 @@ module "session_host" {
   image_sku                 = var.image_sku
   image_version             = var.image_version
   host_pool_id              = module.host_pool.host_pool_id
+  host_pool_name            = module.host_pool.host_pool_name
   registration_info_token   = module.host_pool.registration_info_token
+  avd_user_principal_id     = module.application_groups.aad_user_id
   common_tags               = local.tags
 
   depends_on = [
     azurerm_resource_group.avd,
     module.networking,
-    module.host_pool
+    module.host_pool,
+    module.application_groups
   ]
 }
 

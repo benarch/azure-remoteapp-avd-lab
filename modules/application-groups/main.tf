@@ -175,19 +175,6 @@ resource "azurerm_virtual_desktop_application" "vscode_insiders" {
   icon_index                   = 0
 }
 
-# GitHub Desktop
-resource "azurerm_virtual_desktop_application" "github_desktop" {
-  name                         = "GitHubDesktop"
-  application_group_id         = azurerm_virtual_desktop_application_group.remoteapp.id
-  friendly_name                = "GitHub Desktop"
-  description                  = "GitHub Desktop Client"
-  path                         = "C:\\Users\\avdadmin\\AppData\\Local\\GitHubDesktop\\GitHubDesktop.exe"
-  command_line_argument_policy = "DoNotAllow"
-  show_in_portal               = true
-  icon_path                    = "C:\\Users\\avdadmin\\AppData\\Local\\GitHubDesktop\\GitHubDesktop.exe"
-  icon_index                   = 0
-}
-
 # Git Bash
 resource "azurerm_virtual_desktop_application" "git_bash" {
   name                         = "GitBash"
