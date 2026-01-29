@@ -17,7 +17,7 @@ NC='\033[0m' # No Color
 # Configuration
 LOCATION="${LOCATION:-eastus}"
 ENVIRONMENT="${ENVIRONMENT:-dev}"
-PROJECT_NAME="avd-ben-lab1"
+PROJECT_NAME="avd-lab1"
 RANDOM_SUFFIX=$(date +%s | tail -c 4)
 
 # Derived names

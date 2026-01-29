@@ -1,5 +1,6 @@
 ################################################################################
 # Terraform Provider Configuration
+# Note: No Azure AD/Entra provider - using local user authentication only
 ################################################################################
 
 terraform {
@@ -9,10 +10,6 @@ terraform {
     azurerm = {
       source  = "hashicorp/azurerm"
       version = "~> 3.50"
-    }
-    azuread = {
-      source  = "hashicorp/azuread"
-      version = "~> 2.30"
     }
   }
 }
@@ -25,8 +22,4 @@ provider "azurerm" {
       skip_shutdown_and_force_delete         = false
     }
   }
-}
-
-provider "azuread" {
-  # Uses default Azure CLI context
 }

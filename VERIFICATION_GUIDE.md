@@ -33,7 +33,7 @@ The verification script performs these checks automatically:
 ╚════════════════════════════════════════════════════════════╝
 
 ✓ Azure CLI is installed and authenticated
-✓ Resource Group: rg-avd-ben-lab1-dev
+✓ Resource Group: rg-avd-lab1-dev
 ✓ Found VMs to verify
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

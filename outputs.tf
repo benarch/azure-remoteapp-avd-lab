@@ -109,16 +109,10 @@ output "quota_check_message" {
   value       = module.session_host.quota_check_message
 }
 
-# User Assignment Outputs
-output "assigned_user_email" {
-  description = "Email of the assigned AAD user"
-  value       = module.application_groups.aad_user_email
-}
-
-output "assigned_user_id" {
-  description = "Object ID of the assigned AAD user"
-  value       = module.application_groups.aad_user_id
-  sensitive   = true
+# Local User Information
+output "local_users" {
+  description = "List of local users created on session hosts"
+  value       = var.local_users
 }
 
 # Application Deployment Outputs
@@ -176,14 +170,15 @@ output "next_steps" {
        - Applications deployed via Custom Script Extension
        - Check VM logs at C:\avd-app-deploy.ps1
     
-    3. Configure Per-User Access Pricing:
-       - Go to Azure Portal > Virtual Desktop > Admin
-       - Configure billing preferences
+    3. Local Users Created (for RDP access):
+       - avduser1, avduser2, avduser3, avduser4
+       - Password: (set via local_user_password variable)
+       - All users added to "Remote Desktop Users" group
     
     4. Test User Access:
-       - User: ${module.application_groups.aad_user_email}
-       - Has access to: Desktop and RemoteApp application groups
-       - Connect via Azure Virtual Desktop client
+       - Connect via RDP to session host private IP
+       - Or use session host VM name with local credentials
+       - Format: hostname\username (e.g., sh-dev-vm-1-dev\avduser1)
     
     5. Next Deployment (if needed):
        - terraform workspace select prod

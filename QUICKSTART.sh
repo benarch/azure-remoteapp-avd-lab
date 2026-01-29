@@ -13,7 +13,7 @@ cat << 'EOF'
 ║                                                                          ║
 ╚══════════════════════════════════════════════════════════════════════════╝
 
-Project:     avd-ben-lab1
+Project:     avd-lab1
 Environment: Development / Production (Multi-workspace)
 Type:        RemoteApp with Premium Applications
 Region:      East US (configurable)
@@ -28,7 +28,7 @@ Region:      East US (configurable)
 ✓ Terraform >= 1.0 installed
 ✓ PowerShell 5.1+ on local machine
 ✓ Git for version control (recommended)
-✓ User bendali@MngEnvMCAP990953.onmicrosoft.com exists in Azure AD
+✓ Local users configured (avduser1, avduser2, avduser3, avduser4)
 
 ═══════════════════════════════════════════════════════════════════════════
 
@@ -38,7 +38,7 @@ Region:      East US (configurable)
 STEP 1: Bootstrap Storage Account (One-time, ~2 minutes)
 ────────────────────────────────────────────────────────
 
-  $ cd /Users/bendali/Documents/Ben-private/ben-dev-workspace/terraform/avd-ben-lab1
+  $ cd /path/to/avd-lab1
   
   $ chmod +x bootstrap-storage.sh
   
@@ -47,8 +47,8 @@ STEP 1: Bootstrap Storage Account (One-time, ~2 minutes)
   ⚠️  IMPORTANT: Copy the output configuration and update backend.tf
   
   Example output:
-    Resource Group:      rg-avd-ben-lab1-tfstate-dev
-    Storage Account:     stavdbenlab1XXXX
+    Resource Group:      rg-avd-lab1-tfstate-dev
+    Storage Account:     stavdlab1XXXX
     Container Name:      tfstate
 
 ────────────────────────────────────────────────────────────────────────────
@@ -93,8 +93,8 @@ STEP 4: Deploy AVD Environment (~15-25 minutes)
   
   # Watch deployment progress in Azure Portal:
   # - Virtual machines: sh-dev-vm-1-dev
-  # - Virtual Desktop > Host pools: hpl-avd-ben-lab1-dev
-  # - Application groups: dag-avd-ben-lab1-*-dev
+  # - Virtual Desktop > Host pools: hpl-avd-lab1-dev
+  # - Application groups: dag-avd-lab1-*-dev
   
   # Get outputs
   $ terraform output
@@ -133,7 +133,7 @@ When deployment finishes, you will have:
     - Visual Studio Code Insiders
   
   ✓ User Assignment
-    - User: bendali@MngEnvMCAP990953.onmicrosoft.com
+    - Users: avduser1, avduser2, avduser3, avduser4 (local users)
     - Role: Desktop Virtualization User
     - Scope: Both application groups
 
@@ -144,13 +144,13 @@ When deployment finishes, you will have:
 
   # Check session host status
   $ az vm get-instance-view \
-      -g rg-avd-ben-lab1-dev \
+      -g rg-avd-lab1-dev \
       -n sh-dev-vm-1-dev \
       --query "instanceView.statuses[1]"
   
   # Check extension deployment
   $ az vm extension list \
-      -g rg-avd-ben-lab1-dev \
+      -g rg-avd-lab1-dev \
       --vm-name sh-dev-vm-1-dev
   
   # View Terraform outputs
@@ -213,7 +213,7 @@ When deployment finishes, you will have:
   
   Note: Bootstrap storage account must be deleted manually:
   
-  $ az group delete -n rg-avd-ben-lab1-tfstate-dev -y
+  $ az group delete -n rg-avd-lab1-tfstate-dev -y
 
 ═══════════════════════════════════════════════════════════════════════════
 
@@ -239,9 +239,9 @@ When deployment finishes, you will have:
   Solution: Check quota: az vm list-usage -l eastus
            Request increase in Azure Portal > Quotas
 
-  Issue: "User not found in Azure AD"
-  Solution: Verify user exists: az ad user show --id bendali@...
-           Ensure correct tenant is selected
+  Issue: "User not found"
+  Solution: Verify local users are configured (avduser1, avduser2, avduser3, avduser4)
+           Ensure VM local accounts are properly set up
 
   Issue: "Extension deployment failed"
   Solution: Check logs on VM: C:\WindowsAzure\Logs\Plugins\...
@@ -265,7 +265,7 @@ When deployment finishes, you will have:
 
 Ready to deploy? Run:
 
-  $ cd /Users/bendali/Documents/Ben-private/ben-dev-workspace/terraform/avd-ben-lab1
+  $ cd /path/to/avd-lab1
   $ ./bootstrap-storage.sh
   $ terraform init -reconfigure
 

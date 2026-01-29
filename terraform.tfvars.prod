@@ -6,17 +6,17 @@
 environment = "prod"
 
 # Resource Group Name
-resource_group_name = "rg-avd-ben-lab1-prod"
+resource_group_name = "rg-avd-lab1-prod"
 
 # Host Pool Naming
-host_pool_name = "hpl-avd-ben-lab1-prod"
+host_pool_name = "hpl-avd-lab1-prod"
 
 # Application Groups
-desktop_app_group_name  = "dag-avd-ben-lab1-desktop-prod"
-remoteapp_app_group_name = "dag-avd-ben-lab1-remoteapp-prod"
+desktop_app_group_name  = "dag-avd-lab1-desktop-prod"
+remoteapp_app_group_name = "dag-avd-lab1-remoteapp-prod"
 
 # Workspace Naming
-workspace_name = "ws-avd-ben-lab1-prod"
+workspace_name = "ws-avd-lab1-prod"
 
 # Session Host Configuration - Can scale in production
 session_host_count = 1                    # Configurable for scaling

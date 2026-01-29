@@ -2,6 +2,10 @@
 
 Complete Terraform infrastructure-as-code for deploying an Azure Virtual Desktop environment with RemoteApp configuration, supporting multi-user deployment and multi-workspace strategy (dev/prod).
 
+## 🏗️ Architecture
+
+![AVD Architecture Diagram](avd-architecture.png)
+
 ## 📚 Documentation
 
 - **[README.md](README.md)** - Complete deployment guide (this file)
@@ -23,7 +27,7 @@ See [VERIFICATION_GUIDE.md](VERIFICATION_GUIDE.md) for detailed usage.
 ## Project Structure
 
 ```
-avd-ben-lab1/
+avd-lab1/
 ├── bootstrap-storage.sh              # Bootstrap script to create Azure Storage Account for Terraform state
 ├── verify-installation.sh            # Script to verify application deployment succeeded ⭐
 ├── VERIFICATION_GUIDE.md             # Detailed guide for verifying installation ⭐
@@ -31,7 +35,7 @@ avd-ben-lab1/
 ├── QUICK_REFERENCE.md                # Quick command reference
 ├── DEPLOYMENT_CHECKLIST.md           # Step-by-step deployment checklist
 ├── backend.tf                        # Terraform backend configuration (Azure Storage)
-├── providers.tf                      # Provider configuration (Azure/Azure AD)
+├── providers.tf                      # Provider configuration (Azure)
 ├── main.tf                           # Main orchestration file
 ├── variables.tf                      # Variable definitions
 ├── terraform.tfvars                  # Shared variable defaults
@@ -59,7 +63,7 @@ avd-ben-lab1/
 - Terraform >= 1.0 installed
 - PowerShell 5.1+ (on local machine for running bootstrap script)
 - Azure subscription with appropriate permissions
-- User to be assigned: `bendali@MngEnvMCAP990953.onmicrosoft.com` must exist in Azure AD
+- Local users to be assigned: avduser1, avduser2, avduser3, avduser4
 - D-family vCPU quota in target region (check via `az vm list-usage`)
 
 ## Architecture Overview
@@ -101,8 +105,8 @@ avd-ben-lab1/
 - GitHub Desktop
 
 ### User Assignment
-- **User**: bendali@MngEnvMCAP990953.onmicrosoft.com
-- **Role**: Desktop Virtualization User
+- **Users**: avduser1, avduser2, avduser3, avduser4 (local users)
+- **Authentication**: Local user authentication
 - **Scope**: Both application groups (Desktop & RemoteApp)
 
 ## Deployment Steps
@@ -112,7 +116,7 @@ avd-ben-lab1/
 Run the bootstrap script to create Azure Storage Account for Terraform state:
 
 ```bash
-cd /path/to/avd-ben-lab1
+cd /path/to/avd-lab1
 chmod +x bootstrap-storage.sh
 
 # Optional: Set environment variables
@@ -125,14 +129,14 @@ export ENVIRONMENT="dev"
 
 The script will output:
 ```
-Resource Group:      rg-avd-ben-lab1-tfstate-dev
-Storage Account:     stavdbenlab1XXXX
+Resource Group:      rg-avd-lab1-tfstate-dev
+Storage Account:     stavdlab1XXXX
 Container Name:      tfstate
 
 Backend Configuration:
   backend "azurerm" {
-    resource_group_name  = "rg-avd-ben-lab1-tfstate-dev"
-    storage_account_name = "stavdbenlab1XXXX"
+    resource_group_name  = "rg-avd-lab1-tfstate-dev"
+    storage_account_name = "stavdlab1XXXX"
     container_name       = "tfstate"
     key                  = "env:/${terraform.workspace}/terraform.tfstate"
   }
@@ -145,8 +149,8 @@ Copy the backend configuration from bootstrap output and update `backend.tf`:
 ```hcl
 terraform {
   backend "azurerm" {
-    resource_group_name  = "rg-avd-ben-lab1-tfstate-dev"
-    storage_account_name = "stavdbenlab1XXXX"
+    resource_group_name  = "rg-avd-lab1-tfstate-dev"
+    storage_account_name = "stavdlab1XXXX"
     container_account_name       = "tfstate"
     key                  = "env:/${terraform.workspace}/terraform.tfstate"
   }
@@ -286,8 +290,8 @@ session_host_count = 1
 # Max sessions per host
 max_session_limit = 2
 
-# User email
-aad_admin_user_email = "bendali@MngEnvMCAP990953.onmicrosoft.com"
+# Local users for AVD access
+# avduser1, avduser2, avduser3, avduser4
 ```
 
 ### Environment-Specific Overrides
@@ -301,9 +305,9 @@ session_host_count = 1  # Dev
 session_host_count = 3  # Prod
 
 # Different resource names
-resource_group_name = "rg-avd-ben-lab1-dev"  # Dev
+resource_group_name = "rg-avd-lab1-dev"  # Dev
 # vs
-resource_group_name = "rg-avd-ben-lab1-prod" # Prod
+resource_group_name = "rg-avd-lab1-prod" # Prod
 ```
 
 ### Add More Applications
@@ -386,13 +390,13 @@ az vm run-command show \
 
 ```bash
 # List VMs
-az vm list -g rg-avd-ben-lab1-dev --output table
+az vm list -g rg-avd-lab1-dev --output table
 
 # Check VM running status
-az vm get-instance-view -g rg-avd-ben-lab1-dev -n sh-dev-vm-1-dev
+az vm get-instance-view -g rg-avd-lab1-dev -n sh-dev-vm-1-dev
 
 # Check extension status
-az vm extension list -g rg-avd-ben-lab1-dev --vm-name sh-dev-vm-1-dev
+az vm extension list -g rg-avd-lab1-dev --vm-name sh-dev-vm-1-dev
 ```
 
 ### View Extension Logs
@@ -410,11 +414,9 @@ Get-Content "C:\avd-app-deploy.ps1"
 ### Verify User Assignment
 
 ```bash
-# Check role assignments
-az role assignment list --scope /subscriptions/{subscriptionId}/resourceGroups/rg-avd-ben-lab1-dev
-
-# Search for user assignment
-az role assignment list --assignee bendali@MngEnvMCAP990953.onmicrosoft.com
+# Verify local users are configured on session hosts
+# Connect to the VM and check local user accounts:
+# avduser1, avduser2, avduser3, avduser4
 ```
 
 ### Check Host Pool Status
@@ -455,10 +457,9 @@ If you see "There are no available resources" when trying to launch remote apps:
 
 4. **Verify User Permissions:**
    ```bash
-   # Check if user has Desktop Virtualization User role
-   az role assignment list \
-     --assignee <user-email> \
-     --query "[?roleDefinitionName=='Desktop Virtualization User']"
+   # Verify local users are configured on session hosts:
+   # avduser1, avduser2, avduser3, avduser4
+   # Check Remote Desktop Users group membership
    ```
 
 5. **Check Host Pool Capacity:**
@@ -488,7 +489,7 @@ terraform workspace select dev && terraform destroy -var-file=terraform.tfvars.d
 terraform workspace select prod && terraform destroy -var-file=terraform.tfvars.prod
 
 # Destroy storage account and bootstrap RG manually (not managed by Terraform)
-az group delete -n rg-avd-ben-lab1-tfstate-dev -y
+az group delete -n rg-avd-lab1-tfstate-dev -y
 ```
 
 ## Security Considerations
@@ -510,9 +511,9 @@ az group delete -n rg-avd-ben-lab1-tfstate-dev -y
    - Modify `modules/networking/main.tf` for stricter rules
 
 4. **User Assignments**:
-   - Uses Azure AD integration
-   - Verify user exists in AAD before deployment
-   - Role assignments use principle of least privilege (Desktop Virtualization User)
+   - Uses local user authentication
+   - Local users: avduser1, avduser2, avduser3, avduser4
+   - Users should be members of Remote Desktop Users group
 
 5. **Marketplace Plan Acceptance**:
    - Windows 11 multi-session requires plan acceptance
@@ -538,7 +539,7 @@ session_host_count = 3  # Creates 3 VMs
 ```
 
 **Q: How do I add more users to the application groups?**
-A: Module needs enhancement to support multiple users. Currently supports single user via `aad_admin_user_email`.
+A: Add additional local users (avduser5, etc.) to the session hosts and ensure they are members of the Remote Desktop Users group.
 
 **Q: Can I use a custom VM image instead of Marketplace?**
 A: Yes, modify `modules/session-host/main.tf` `source_image_reference` to use custom image ID.
@@ -554,7 +555,7 @@ A: VS Code and Git installers download from internet. Timeout set to 30 minutes.
 
 ---
 
-**Project**: AVD Ben Lab 1  
+**Project**: AVD Lab 1  
 **Environment**: Development / Production  
 **Last Updated**: 2026-01-26  
 **Terraform Version**: >= 1.0  

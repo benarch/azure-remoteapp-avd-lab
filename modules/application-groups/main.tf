@@ -1,22 +1,8 @@
 ################################################################################
 # Application Groups Module - Main Configuration
-# Creates Desktop and RemoteApp application groups with AAD user assignment
+# Creates Desktop and RemoteApp application groups
+# Note: Using local user authentication - no AAD user assignment
 ################################################################################
-
-# Azure AD Provider Configuration
-terraform {
-  required_providers {
-    azuread = {
-      source  = "hashicorp/azuread"
-      version = "~> 2.0"
-    }
-  }
-}
-
-# Query Azure AD for the specified user
-data "azuread_user" "avd_admin" {
-  user_principal_name = var.aad_admin_user_email
-}
 
 # Desktop Application Group
 resource "azurerm_virtual_desktop_application_group" "desktop" {
@@ -64,20 +50,6 @@ resource "azurerm_virtual_desktop_workspace_application_group_association" "remo
 resource "azurerm_virtual_desktop_workspace_application_group_association" "desktop" {
   workspace_id         = var.workspace_id
   application_group_id = azurerm_virtual_desktop_application_group.desktop.id
-}
-
-# RBAC Role Assignment: Desktop Application Group - Desktop Virtualization User
-resource "azurerm_role_assignment" "desktop_user" {
-  scope              = azurerm_virtual_desktop_application_group.desktop.id
-  role_definition_name = "Desktop Virtualization User"
-  principal_id       = data.azuread_user.avd_admin.id
-}
-
-# RBAC Role Assignment: RemoteApp Application Group - Desktop Virtualization User
-resource "azurerm_role_assignment" "remoteapp_user" {
-  scope              = azurerm_virtual_desktop_application_group.remoteapp.id
-  role_definition_name = "Desktop Virtualization User"
-  principal_id       = data.azuread_user.avd_admin.id
 }
 
 ################################################################################

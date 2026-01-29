@@ -1,6 +1,7 @@
 ################################################################################
 # Session Host Module - Main Configuration
-# Creates Windows 11 multi-session VMs with quota checking and registration
+# Creates Windows 11 multi-session VMs with local user authentication
+# No AD/Entra join - uses local users only
 ################################################################################
 
 # Verify quota - this is an informational check
@@ -11,6 +12,9 @@ locals {
   # In production, integrate with Azure Quota API for hard verification
   # This is a soft check that warns but doesn't block deployment
   quota_check_message = "Ensure your subscription has at least ${local.quota_vcpus_required} D-family vCPU quota in ${var.location} region"
+  
+  # Local users to create on session hosts
+  local_users = var.local_users
 }
 
 # Network Interface for each VM
@@ -49,11 +53,6 @@ resource "azurerm_windows_virtual_machine" "session_host" {
     azurerm_network_interface.session_host[count.index].id,
   ]
 
-  # Enable System Managed Identity for Entra ID Join
-  identity {
-    type = "SystemAssigned"
-  }
-
   os_disk {
     caching              = "ReadWrite"
     storage_account_type = "Premium_LRS"
@@ -87,8 +86,55 @@ resource "azurerm_windows_virtual_machine" "session_host" {
   depends_on = [azurerm_network_interface.session_host]
 }
 
+# Create Local Users on Session Hosts
+# This extension creates local user accounts for RDP/RemoteApp access
+resource "azurerm_virtual_machine_extension" "create_local_users" {
+  count                      = var.session_host_count
+  name                       = "CreateLocalUsers"
+  virtual_machine_id         = azurerm_windows_virtual_machine.session_host[count.index].id
+  publisher                  = "Microsoft.Compute"
+  type                       = "CustomScriptExtension"
+  type_handler_version       = "1.10"
+  auto_upgrade_minor_version = true
+
+  settings = jsonencode({
+    commandToExecute = "powershell -ExecutionPolicy Unrestricted -Command \"${local.create_users_script}\""
+  })
+
+  timeouts {
+    create = "30m"
+    delete = "15m"
+  }
+
+  depends_on = [azurerm_windows_virtual_machine.session_host]
+}
+
+locals {
+  # PowerShell script to create local users
+  create_users_script = <<-EOT
+    $users = @(
+      @{Name='avduser1'; Password='${var.local_user_password}'; Description='AVD Local User 1'},
+      @{Name='avduser2'; Password='${var.local_user_password}'; Description='AVD Local User 2'},
+      @{Name='avduser3'; Password='${var.local_user_password}'; Description='AVD Local User 3'},
+      @{Name='avduser4'; Password='${var.local_user_password}'; Description='AVD Local User 4'}
+    );
+    foreach ($user in $users) {
+      $securePassword = ConvertTo-SecureString $user.Password -AsPlainText -Force;
+      if (-not (Get-LocalUser -Name $user.Name -ErrorAction SilentlyContinue)) {
+        New-LocalUser -Name $user.Name -Password $securePassword -Description $user.Description -PasswordNeverExpires;
+        Add-LocalGroupMember -Group 'Remote Desktop Users' -Member $user.Name -ErrorAction SilentlyContinue;
+        Write-Host \"Created user: $($user.Name)\";
+      } else {
+        Write-Host \"User already exists: $($user.Name)\";
+      }
+    };
+    Write-Host 'Local user creation completed.'
+  EOT
+}
+
 # Register Session Host with AVD Host Pool using DSC Extension
 # This is the official Microsoft-recommended approach for reliable AVD registration
+# Note: aadJoin is set to false for local user authentication
 resource "azurerm_virtual_machine_extension" "host_pool_registration" {
   count                      = var.session_host_count
   name                       = "Microsoft.PowerShell.DSC"
@@ -103,7 +149,7 @@ resource "azurerm_virtual_machine_extension" "host_pool_registration" {
     configurationFunction = "Configuration.ps1\\AddSessionHost"
     properties = {
       hostPoolName          = var.host_pool_name
-      aadJoin               = true
+      aadJoin               = false
       UseAgentDownloadEndpoint = true
     }
   })
@@ -123,34 +169,5 @@ resource "azurerm_virtual_machine_extension" "host_pool_registration" {
     ignore_changes = [settings, protected_settings]
   }
 
-  depends_on = [azurerm_virtual_machine_extension.aad_login]
-}
-
-# Azure AD Join Extension - Required for Entra ID joined session hosts
-resource "azurerm_virtual_machine_extension" "aad_login" {
-  count                      = var.session_host_count
-  name                       = "AADLoginForWindows"
-  virtual_machine_id         = azurerm_windows_virtual_machine.session_host[count.index].id
-  publisher                  = "Microsoft.Azure.ActiveDirectory"
-  type                       = "AADLoginForWindows"
-  type_handler_version       = "2.0"
-  auto_upgrade_minor_version = true
-
-  settings = jsonencode({
-    mdmId = ""
-  })
-
-  timeouts {
-    create = "30m"
-    delete = "30m"
-  }
-}
-
-# RBAC: Virtual Machine User Login - Required for Entra ID joined VMs
-# Users need this role to log into the VM via AVD
-resource "azurerm_role_assignment" "vm_user_login" {
-  count                = var.session_host_count
-  scope                = azurerm_windows_virtual_machine.session_host[count.index].id
-  role_definition_name = "Virtual Machine User Login"
-  principal_id         = var.avd_user_principal_id
+  depends_on = [azurerm_virtual_machine_extension.create_local_users]
 }

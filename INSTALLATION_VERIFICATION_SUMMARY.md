@@ -165,7 +165,7 @@ The enhanced deployment script now creates detailed logs on each VM:
 ## Documentation Structure
 
 ```
-ben-avd-lab1/
+avd-lab1/
 ├── README.md                      # Main deployment guide
 ├── verify-installation.sh         # Verification script ⭐
 ├── VERIFICATION_GUIDE.md          # How to verify installation ⭐

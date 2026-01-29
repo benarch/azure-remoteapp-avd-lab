@@ -11,7 +11,7 @@
 
 ### Azure Subscription
 - [ ] Have access to target Azure subscription
-- [ ] User `bendali@MngEnvMCAP990953.onmicrosoft.com` exists in Azure AD
+- [ ] Local users configured (avduser1, avduser2, avduser3, avduser4)
 - [ ] D-family vCPU quota available in East US region
   ```bash
   az vm list-usage -l eastus --query "[?name.value=='StandardDFamily']"
@@ -40,8 +40,8 @@
 - [ ] Execute `./bootstrap-storage.sh`
 - [ ] Verify success: Check for green ✓ checkmarks in output
 - [ ] Copy output information:
-  - [ ] Resource Group Name: `rg-avd-ben-lab1-tfstate-*`
-  - [ ] Storage Account Name: `stavdbenlab1XXXX`
+  - [ ] Resource Group Name: `rg-avd-lab1-tfstate-*`
+  - [ ] Storage Account Name: `stavdlab1XXXX`
   - [ ] Container Name: `tfstate`
 
 ### Post-Bootstrap
@@ -82,12 +82,10 @@
 - [ ] Confirm VNet CIDR ranges: 192.168.100.0/22
 - [ ] Confirm application list in variables
 
-### Validate Azure AD User
-- [ ] Verify user exists in Azure AD:
-  ```bash
-  az ad user show --id bendali@MngEnvMCAP990953.onmicrosoft.com
-  ```
-- [ ] Confirm correct tenant: `az account show --query tenantId`
+### Validate Local Users
+- [ ] Verify local users are configured on session hosts:
+  - avduser1, avduser2, avduser3, avduser4
+- [ ] Confirm proper group membership for AVD access
 
 ---
 
@@ -117,14 +115,14 @@
 - [ ] Watch for progress messages
 - [ ] Typical duration: 15-25 minutes
 - [ ] Monitor in Azure Portal:
-  - [ ] Resource Group created: `rg-avd-ben-lab1-dev`
+  - [ ] Resource Group created: `rg-avd-lab1-dev`
   - [ ] VirtualNetwork created
   - [ ] Virtual Machines starting (sh-dev-vm-1-dev)
   - [ ] Network Interfaces created
   - [ ] Disks provisioning
-  - [ ] Host Pool created (hpl-avd-ben-lab1-dev)
+  - [ ] Host Pool created (hpl-avd-lab1-dev)
   - [ ] Application Groups created (dag-*)
-  - [ ] Workspace created (ws-avd-ben-lab1-dev)
+  - [ ] Workspace created (ws-avd-lab1-dev)
 
 ### Post-Deployment Validation
 - [ ] Deployment completes with "Apply complete!"
@@ -135,14 +133,14 @@
   - [ ] `host_pool_name`
   - [ ] `session_host_vm_names`
   - [ ] `session_host_private_ips`
-  - [ ] `assigned_user_email`
+  - [ ] `local_users` (avduser1-4)
 
 ---
 
 ## Post-Deployment Verification (Step 5)
 
 ### Azure Portal Verification
-- [ ] Navigate to Resource Group: `rg-avd-ben-lab1-dev`
+- [ ] Navigate to Resource Group: `rg-avd-lab1-dev`
 - [ ] Check Virtual Machines:
   - [ ] `sh-dev-vm-1-dev` exists
   - [ ] VM status: "Running"
@@ -157,25 +155,25 @@
 
 - [ ] Check Host Pool:
   - [ ] Navigate to: Virtual Desktop > Host pools
-  - [ ] Host pool exists: `hpl-avd-ben-lab1-dev`
+  - [ ] Host pool exists: `hpl-avd-lab1-dev`
   - [ ] Type: RemoteApp
   - [ ] Session host status: check "Session hosts" tab
   - [ ] Status should show: Registered, Available, or similar
 
 - [ ] Check Application Groups:
-  - [ ] Desktop app group exists: `dag-avd-ben-lab1-desktop-dev`
-  - [ ] RemoteApp app group exists: `dag-avd-ben-lab1-remoteapp-dev`
+  - [ ] Desktop app group exists: `dag-avd-lab1-desktop-dev`
+  - [ ] RemoteApp app group exists: `dag-avd-lab1-remoteapp-dev`
   - [ ] User assignment: Check "Assignments" tab
-  - [ ] User `bendali@...` should be listed
+  - [ ] Local users (avduser1-4) should be listed
 
 - [ ] Check Workspace:
-  - [ ] Workspace created: `ws-avd-ben-lab1-dev`
+  - [ ] Workspace created: `ws-avd-lab1-dev`
   - [ ] Associated app groups visible
 
 ### Session Host Verification
 - [ ] Check VM extension status:
   ```bash
-  az vm extension list -g rg-avd-ben-lab1-dev --vm-name sh-dev-vm-1-dev -o table
+  az vm extension list -g rg-avd-lab1-dev --vm-name sh-dev-vm-1-dev -o table
   ```
 - [ ] Extensions should include:
   - [ ] `CustomScriptExtension` (for app deployment)
@@ -187,16 +185,14 @@
   - [ ] Review for any failed installations
 
 ### User Assignment Verification
-- [ ] Check role assignments:
-  ```bash
-  az role assignment list --assignee bendali@MngEnvMCAP990953.onmicrosoft.com
-  ```
-- [ ] Verify "Desktop Virtualization User" role assigned to app groups
+- [ ] Verify local users are configured on session hosts:
+  - avduser1, avduser2, avduser3, avduser4
+- [ ] Verify users have proper permissions to access applications
 
 ### Connectivity Test (Optional)
 - [ ] Install Azure Virtual Desktop client on local machine
 - [ ] Try to connect to: Host pool or workspace
-- [ ] Authenticate with: `bendali@MngEnvMCAP990953.onmicrosoft.com`
+- [ ] Authenticate with local user credentials (avduser1, avduser2, avduser3, or avduser4)
 - [ ] Verify can see: Published applications or desktop
 
 ---
@@ -221,7 +217,7 @@
 
 ### Verify Production
 - [ ] Same checks as dev deployment
-- [ ] Check resource group: `rg-avd-ben-lab1-prod`
+- [ ] Check resource group: `rg-avd-lab1-prod`
 - [ ] Verify resource naming and configuration
 
 ---
@@ -236,7 +232,7 @@ If deployment fails:
   - [ ] `Error: storage account name not available` → Run bootstrap again
   - [ ] `Error: quota exceeded` → Request quota increase
   - [ ] `Error: invalid location` → Check location variable
-  - [ ] `Error: user not found` → Verify AAD user exists
+  - [ ] `Error: user not found` → Verify local user configuration
 
 ### Module Errors
 - [ ] Check individual module creation:
@@ -282,7 +278,7 @@ If deployment fails:
 ### Remove Bootstrap Resources
 - [ ] Delete storage account RG:
   ```bash
-  az group delete -n rg-avd-ben-lab1-tfstate-dev -y
+  az group delete -n rg-avd-lab1-tfstate-dev -y
   ```
 - [ ] Verify deletion: `az group list --query "[*].name"`
 
@@ -323,5 +319,5 @@ _________________________________________________________________
 ---
 
 **Last Updated**: 2026-01-26  
-**Project**: AVD Ben Lab 1  
+**Project**: AVD Lab 1  
 **Status**: [Pending / In Progress / Complete]

@@ -18,7 +18,7 @@ This typically means one of these problems:
 This is the fastest way to identify the problem:
 
 ```bash
-cd /path/to/ben-avd-lab1
+cd /path/to/avd-lab1
 ./verify-installation.sh
 ```
 
@@ -226,7 +226,7 @@ After applying any fix, wait 5-10 minutes and then:
 
 3. **Try connecting to AVD:**
    - Open Azure Virtual Desktop client
-   - Login with: `bendali@MngEnvMCAP990953.onmicrosoft.com`
+   - Login with a local user: `avduser1`, `avduser2`, `avduser3`, or `avduser4`
    - Try launching a RemoteApp
 
 ## Still Having Issues?

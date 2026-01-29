@@ -101,7 +101,6 @@ module "application_groups" {
   workspace_id                = azurerm_virtual_desktop_workspace.avd.id
   desktop_app_group_name      = local.desktop_app_group_name
   remoteapp_app_group_name    = local.remoteapp_app_group_name
-  aad_admin_user_email        = var.aad_admin_user_email
   common_tags                 = local.tags
 
   depends_on = [
@@ -132,7 +131,8 @@ module "session_host" {
   host_pool_id              = module.host_pool.host_pool_id
   host_pool_name            = module.host_pool.host_pool_name
   registration_info_token   = module.host_pool.registration_info_token
-  avd_user_principal_id     = module.application_groups.aad_user_id
+  local_users               = var.local_users
+  local_user_password       = var.local_user_password
   common_tags               = local.tags
 
   depends_on = [

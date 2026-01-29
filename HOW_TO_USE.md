@@ -7,7 +7,7 @@ This has been **fixed**! Here's how to verify and troubleshoot your deployment.
 ## 🚀 Quick Start (30 seconds)
 
 ```bash
-cd /path/to/ben-avd-lab1
+cd /path/to/avd-lab1
 ./verify-installation.sh
 ```
 

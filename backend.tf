@@ -13,8 +13,8 @@ terraform {
   
   # Uncomment below to use Azure Storage backend (requires proper permissions)
   # backend "azurerm" {
-  #   resource_group_name  = "rg-avd-ben-lab1-tfstate-dev"
-  #   storage_account_name = "stavdbenlab1002"
+  #   resource_group_name  = "rg-avd-lab1-tfstate-dev"
+  #   storage_account_name = "stavdlab1002"
   #   container_name       = "tfstate"
   #   key                  = "terraform.tfstate"
   #   use_azuread_auth     = true

@@ -29,7 +29,7 @@ variable "resource_prefix" {
 variable "project_name" {
   description = "Project name used in resource naming"
   type        = string
-  default     = "ben-lab1"
+  default     = "lab1"
 }
 
 # Resource Group
@@ -212,11 +212,17 @@ variable "image_version" {
   default     = "latest"
 }
 
-# Azure AD User Assignment
-variable "aad_admin_user_email" {
-  description = "Email of AAD user to assign to application groups"
+# Local User Configuration (No AD/Entra Join)
+variable "local_users" {
+  description = "List of local users to create on session hosts for RDP access"
+  type        = list(string)
+  default     = ["avduser1", "avduser2", "avduser3", "avduser4"]
+}
+
+variable "local_user_password" {
+  description = "Password for local users on session hosts"
   type        = string
-  default     = "bendali@MngEnvMCAP990953.onmicrosoft.com"
+  sensitive   = true
 }
 
 # Applications Configuration

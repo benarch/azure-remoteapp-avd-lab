@@ -97,7 +97,14 @@ variable "common_tags" {
   type        = map(string)
 }
 
-variable "avd_user_principal_id" {
-  description = "Principal ID of the AVD user for VM login permissions"
+variable "local_users" {
+  description = "List of local users to create on session hosts"
+  type        = list(string)
+  default     = ["avduser1", "avduser2", "avduser3", "avduser4"]
+}
+
+variable "local_user_password" {
+  description = "Password for local users on session hosts"
   type        = string
+  sensitive   = true
 }

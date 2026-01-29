@@ -37,11 +37,6 @@ variable "remoteapp_app_group_name" {
   type        = string
 }
 
-variable "aad_admin_user_email" {
-  description = "Email of AAD user to assign to application groups"
-  type        = string
-}
-
 variable "common_tags" {
   description = "Common tags to apply to resources"
   type        = map(string)
