@@ -157,7 +157,7 @@ output "deployment_summary" {
 # Next Steps
 output "next_steps" {
   description = "Next steps after deployment"
-  value = <<-EOT
+  value       = <<-EOT
     ╔════════════════════════════════════════════════════════════╗
     ║         AVD Environment Deployment Completed              ║
     ╚════════════════════════════════════════════════════════════╝

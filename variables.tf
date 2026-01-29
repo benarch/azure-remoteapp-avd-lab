@@ -106,20 +106,20 @@ variable "rdp_properties" {
   description = "RDP properties for session hosts. Keys should include type indicator (e.g., 'audiocapturemode:i' for integer, 'drivestoredirect:s' for string)"
   type        = map(string)
   default = {
-    "audiocapturemode:i"    = "0"       # Do not record audio
-    "audiomode:i"           = "0"       # Audio playback via RDP
-    "camerastoredirect:s"   = "*"       # All cameras
-    "redirectclipboard:i"   = "1"       # Enable clipboard
-    "drivestoredirect:s"    = ""        # No drive redirection
-    "redirectcomports:i"    = "0"       # Disable COM port
-    "redirectlocation:i"    = "0"       # Disable location
-    "redirectprinters:i"    = "0"       # Disable printers
-    "redirectsmartcards:i"  = "1"       # Smart card enabled
-    "redirectwebauthn:i"    = "1"       # WebAuthn enabled
-    "screen mode id:i"      = "2"       # Multi-display support
-    "smart sizing:i"        = "1"       # Smart sizing
-    "use multimon:i"        = "1"       # Multi-monitor enabled
-    "videoplaybackmode:i"   = "1"       # Optimized video
+    "audiocapturemode:i"   = "0" # Do not record audio
+    "audiomode:i"          = "0" # Audio playback via RDP
+    "camerastoredirect:s"  = "*" # All cameras
+    "redirectclipboard:i"  = "1" # Enable clipboard
+    "drivestoredirect:s"   = ""  # No drive redirection
+    "redirectcomports:i"   = "0" # Disable COM port
+    "redirectlocation:i"   = "0" # Disable location
+    "redirectprinters:i"   = "0" # Disable printers
+    "redirectsmartcards:i" = "1" # Smart card enabled
+    "redirectwebauthn:i"   = "1" # WebAuthn enabled
+    "screen mode id:i"     = "2" # Multi-display support
+    "smart sizing:i"       = "1" # Smart sizing
+    "use multimon:i"       = "1" # Multi-monitor enabled
+    "videoplaybackmode:i"  = "1" # Optimized video
   }
 }
 

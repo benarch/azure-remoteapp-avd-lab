@@ -10,7 +10,7 @@ terraform {
   # 1. Re-enable shared key access: az storage account update -n <name> --allow-shared-key-access true
   # 2. OR Grant current user proper RBAC roles on storage account
   # 3. Then restore this backend configuration and run: terraform init -reconfigure -migrate-state
-  
+
   # Uncomment below to use Azure Storage backend (requires proper permissions)
   # backend "azurerm" {
   #   resource_group_name  = "rg-avd-lab1-tfstate-dev"

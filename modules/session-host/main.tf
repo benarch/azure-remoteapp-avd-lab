@@ -6,13 +6,13 @@
 
 # Verify quota - this is an informational check
 locals {
-  vm_sku_family = regex("^Standard_D[0-9]+", var.vm_size)
-  quota_vcpus_required = var.session_host_count * 4  # D4s_v3 has 4 vCPUs
-  
+  vm_sku_family        = regex("^Standard_D[0-9]+", var.vm_size)
+  quota_vcpus_required = var.session_host_count * 4 # D4s_v3 has 4 vCPUs
+
   # In production, integrate with Azure Quota API for hard verification
   # This is a soft check that warns but doesn't block deployment
   quota_check_message = "Ensure your subscription has at least ${local.quota_vcpus_required} D-family vCPU quota in ${var.location} region"
-  
+
   # Local users to create on session hosts
   local_users = var.local_users
 }
@@ -71,7 +71,7 @@ resource "azurerm_windows_virtual_machine" "session_host" {
 
   # Enable boot diagnostics for troubleshooting
   boot_diagnostics {
-    storage_account_uri = null  # Use managed boot diagnostics
+    storage_account_uri = null # Use managed boot diagnostics
   }
 
   tags = merge(
@@ -148,8 +148,8 @@ resource "azurerm_virtual_machine_extension" "host_pool_registration" {
     modulesUrl            = "https://wvdportalstorageblob.blob.core.windows.net/galleryartifacts/Configuration_1.0.02714.342.zip"
     configurationFunction = "Configuration.ps1\\AddSessionHost"
     properties = {
-      hostPoolName          = var.host_pool_name
-      aadJoin               = false
+      hostPoolName             = var.host_pool_name
+      aadJoin                  = false
       UseAgentDownloadEndpoint = true
     }
   })
