@@ -156,7 +156,7 @@ resource "azurerm_virtual_desktop_application" "git_bash" {
   path                         = "C:\\Program Files\\Git\\git-bash.exe"
   command_line_argument_policy = "DoNotAllow"
   show_in_portal               = true
-  icon_path                    = "C:\\Program Files\\Git\\git-bash.exe"
+  icon_path                    = "C:\\Program Files\\Git\\mingw64\\share\\git\\git-for-windows.ico"
   icon_index                   = 0
 }
 
@@ -170,5 +170,31 @@ resource "azurerm_virtual_desktop_application" "sevenzip" {
   command_line_argument_policy = "DoNotAllow"
   show_in_portal               = true
   icon_path                    = "C:\\Program Files\\7-Zip\\7zFM.exe"
+  icon_index                   = 0
+}
+
+# MobaXterm
+resource "azurerm_virtual_desktop_application" "mobaxterm" {
+  name                         = "MobaXterm"
+  application_group_id         = azurerm_virtual_desktop_application_group.remoteapp.id
+  friendly_name                = "MobaXterm"
+  description                  = "MobaXterm SSH/Terminal Client"
+  path                         = "C:\\Program Files (x86)\\Mobatek\\MobaXterm\\MobaXterm.exe"
+  command_line_argument_policy = "DoNotAllow"
+  show_in_portal               = true
+  icon_path                    = "C:\\Program Files (x86)\\Mobatek\\MobaXterm\\MobaXterm.exe"
+  icon_index                   = 0
+}
+
+# GitHub Desktop
+resource "azurerm_virtual_desktop_application" "github_desktop" {
+  name                         = "GitHubDesktop"
+  application_group_id         = azurerm_virtual_desktop_application_group.remoteapp.id
+  friendly_name                = "GitHub Desktop"
+  description                  = "GitHub Desktop Client"
+  path                         = "C:\\Users\\avdadmin\\AppData\\Local\\GitHubDesktop\\GitHubDesktop.exe"
+  command_line_argument_policy = "DoNotAllow"
+  show_in_portal               = true
+  icon_path                    = "C:\\Users\\avdadmin\\AppData\\Local\\GitHubDesktop\\GitHubDesktop.exe"
   icon_index                   = 0
 }

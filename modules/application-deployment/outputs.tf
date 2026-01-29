@@ -29,7 +29,7 @@ output "deployment_status" {
 
 output "verification_instructions" {
   description = "Instructions to verify the installation"
-  value = <<-EOT
+  value       = <<-EOT
     To verify application installation succeeded on VMs:
     
     1. Check run command status in Azure Portal:

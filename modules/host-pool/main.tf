@@ -7,29 +7,29 @@
 # Keys should already include type indicator (e.g., "audiocapturemode:i")
 locals {
   rdp_properties_string = join(";", [
-    for key, value in var.rdp_properties : 
+    for key, value in var.rdp_properties :
     "${key}:${value}"
   ])
 }
 
 # AVD Host Pool
 resource "azurerm_virtual_desktop_host_pool" "avd" {
-  name                     = var.host_pool_name
-  location                 = var.location
-  resource_group_name      = var.resource_group_name
-  type                     = var.host_pool_type
-  friendly_name            = var.host_pool_friendly_name
-  description              = var.host_pool_description
-  load_balancer_type       = var.load_balancer_type
-  maximum_sessions_allowed = var.max_session_limit
-  start_vm_on_connect      = var.start_vm_on_connect
-  personal_desktop_assignment_type = null  # Only for Personal type
+  name                             = var.host_pool_name
+  location                         = var.location
+  resource_group_name              = var.resource_group_name
+  type                             = var.host_pool_type
+  friendly_name                    = var.host_pool_friendly_name
+  description                      = var.host_pool_description
+  load_balancer_type               = var.load_balancer_type
+  maximum_sessions_allowed         = var.max_session_limit
+  start_vm_on_connect              = var.start_vm_on_connect
+  personal_desktop_assignment_type = null # Only for Personal type
 
   # RDP Properties
   custom_rdp_properties = local.rdp_properties_string
 
   # Preferred Application Group Type
-  preferred_app_group_type = "RailApplications"  # RemoteApp
+  preferred_app_group_type = "RailApplications" # RemoteApp
 
   tags = merge(
     var.common_tags,
@@ -41,8 +41,8 @@ resource "azurerm_virtual_desktop_host_pool" "avd" {
 
 # Host Pool Registration Info (token)
 resource "azurerm_virtual_desktop_host_pool_registration_info" "avd" {
-  hostpool_id      = azurerm_virtual_desktop_host_pool.avd.id
-  expiration_date  = timeadd(timestamp(), "168h")  # 7 days
+  hostpool_id     = azurerm_virtual_desktop_host_pool.avd.id
+  expiration_date = timeadd(timestamp(), "168h") # 7 days
 
   lifecycle {
     ignore_changes = [expiration_date]
