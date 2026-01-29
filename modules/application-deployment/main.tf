@@ -102,7 +102,8 @@ resource "azurerm_virtual_machine_run_command" "app_deployment" {
               @{ name = "Git"; package = "git" },
               @{ name = "GitHub Desktop"; package = "github-desktop" },
               @{ name = "Visual Studio Code"; package = "vscode" },
-              @{ name = "VS Code Insiders"; package = "vscode-insiders" }
+              @{ name = "VS Code Insiders"; package = "vscode-insiders" },
+              @{ name = "MobaXterm"; package = "mobaxterm" }
           )
           
           Write-Log "========================================" -Color Cyan
